@@ -1,0 +1,41 @@
+{
+  "entities": {
+    "PrayerRequest": {
+      "title": "Prayer Request",
+      "description": "A prayer request submitted by a user.",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string", "description": "Name of the requester" },
+        "email": { "type": "string", "format": "email", "description": "Email of the requester" },
+        "request": { "type": "string", "description": "The prayer request content" },
+        "isPrivate": { "type": "boolean", "description": "Whether the request is private" },
+        "createdAt": { "type": "string", "format": "date-time", "description": "Timestamp of submission" }
+      },
+      "required": ["name", "request", "createdAt"]
+    },
+    "ConnectRequest": {
+      "title": "Connect Request",
+      "description": "A request to connect, visit, join a group, or donate.",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string", "description": "Name of the person" },
+        "email": { "type": "string", "format": "email", "description": "Email of the person" },
+        "phone": { "type": "string", "description": "Phone number" },
+        "type": { "type": "string", "enum": ["visit", "group", "donate"], "description": "Type of connection" },
+        "message": { "type": "string", "description": "Optional message" },
+        "createdAt": { "type": "string", "format": "date-time", "description": "Timestamp of submission" }
+      },
+      "required": ["name", "email", "type", "createdAt"]
+    }
+  },
+  "firestore": {
+    "/prayerRequests/{requestId}": {
+      "schema": { "$ref": "#/entities/PrayerRequest" },
+      "description": "Collection of prayer requests"
+    },
+    "/connectRequests/{requestId}": {
+      "schema": { "$ref": "#/entities/ConnectRequest" },
+      "description": "Collection of connection requests"
+    }
+  }
+}

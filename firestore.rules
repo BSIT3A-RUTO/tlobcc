@@ -1,0 +1,137 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // ===============================================================
+    // Assumed Data Model
+    // ===============================================================
+    //
+    // Collection: prayerRequests
+    // Document ID: auto-generated
+    // Fields:
+    //   - name: string (required, < 100 chars)
+    //   - email: string (optional, < 100 chars, valid email)
+    //   - request: string (required, < 2000 chars)
+    //   - isPrivate: boolean (optional)
+    //   - createdAt: timestamp (required)
+    //
+    // Collection: connectRequests
+    // Document ID: auto-generated
+    // Fields:
+    //   - name: string (required, < 100 chars)
+    //   - email: string (required, < 100 chars, valid email)
+    //   - phone: string (optional, < 20 chars)
+    //   - type: string (required, in ['visit', 'group', 'donate'])
+    //   - message: string (optional, < 2000 chars)
+    //   - createdAt: timestamp (required)
+    //
+    // Collection: users
+    // Document ID: user UID
+    // Fields:
+    //   - role: string (required, in ['admin', 'user'])
+    //
+    // ===============================================================
+
+    // ===============================================================
+    // Helper Functions
+    // ===============================================================
+    
+    function isAuthenticated() {
+       return request.auth != null;
+    }
+    
+    function isAdmin() {
+      return isAuthenticated() &&
+        (exists(/databases/$(database)/documents/users/$(request.auth.uid)) && 
+         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin' ||
+          (request.auth.token.email == "jasonruto11@gmail.com" && request.auth.token.email_verified == true)); // Default admin
+    }
+    
+    function hasRequiredFields(fields) {
+       return request.resource.data.keys().hasAll(fields);
+    }
+    
+    function hasOnlyAllowedFields(fields) {
+      return request.resource.data.keys().hasOnly(fields);
+    }
+    
+    function validStringLength(field, minLen, maxLen) {
+       return request.resource.data[field] is string &&
+         request.resource.data[field].size() >= minLen &&
+         request.resource.data[field].size() <= maxLen;
+    }
+    
+    function isValidOptionalString(field, minLen, maxLen) {
+      return !(field in request.resource.data) ||
+             (request.resource.data[field] is string &&
+              request.resource.data[field].size() >= minLen &&
+              request.resource.data[field].size() <= maxLen);
+    }
+    
+    function isValidEmail(email) {
+       return email is string &&
+         email.matches("^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$");
+    }
+
+    function isValidOptionalEmail(field) {
+      return !(field in request.resource.data) || isValidEmail(request.resource.data[field]);
+    }
+
+    // ===============================================================
+    // Domain Validators
+    // ===============================================================
+
+    function isValidPrayerRequest() {
+      return hasRequiredFields(['name', 'request', 'createdAt']) &&
+             hasOnlyAllowedFields(['name', 'email', 'request', 'isPrivate', 'createdAt']) &&
+             validStringLength('name', 1, 100) &&
+             isValidOptionalString('email', 5, 100) &&
+             isValidOptionalEmail('email') &&
+             validStringLength('request', 1, 2000) &&
+             (!( 'isPrivate' in request.resource.data ) || request.resource.data.isPrivate is bool) &&
+             request.resource.data.createdAt is timestamp;
+    }
+
+    function isValidConnectRequest() {
+      return hasRequiredFields(['name', 'email', 'type', 'createdAt']) &&
+             hasOnlyAllowedFields(['name', 'email', 'phone', 'type', 'message', 'createdAt']) &&
+             validStringLength('name', 1, 100) &&
+             validStringLength('email', 5, 100) &&
+             isValidEmail(request.resource.data.email) &&
+             isValidOptionalString('phone', 1, 20) &&
+             request.resource.data.type in ['visit', 'group', 'donate'] &&
+             isValidOptionalString('message', 1, 2000) &&
+             request.resource.data.createdAt is timestamp;
+    }
+
+    // ===============================================================
+    // Rules
+    // ===============================================================
+
+    match /prayerRequests/{requestId} {
+      // Anyone can submit a prayer request
+      allow create: if isValidPrayerRequest();
+      // Only admins can read, update, or delete
+      allow read, update, delete: if isAdmin();
+    }
+
+    match /connectRequests/{requestId} {
+      // Anyone can submit a connect request
+      allow create: if isValidConnectRequest();
+      // Only admins can read, update, or delete
+      allow read, update, delete: if isAdmin();
+    }
+    
+    match /users/{userId} {
+      allow read: if isAdmin() || (isAuthenticated() && request.auth.uid == userId);
+      // Only admins can create or update users (to prevent privilege escalation)
+      allow create, update, delete: if isAdmin();
+    }
+    
+    // Default deny
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
