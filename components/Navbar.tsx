@@ -39,21 +39,13 @@ const Navbar: React.FC<NavbarProps> = ({ onConnectClick }) => {
             </Link>
           ))}
         </div>
-        <div className="hidden md:flex items-center gap-3">
-          <Link
-            to="/admin/login"
-            className="text-xs font-bold uppercase tracking-wider text-white border border-white/20 px-3 py-2 rounded hover:bg-white hover:text-black transition"
-          >
-            Admin
-          </Link>
-          <button 
-            onClick={onConnectClick}
-            className="border border-white px-8 py-3 text-xs font-bold tracking-widest uppercase hover:bg-white hover:text-black transition-all duration-300 text-white cursor-pointer bg-transparent"
-            data-hover="true"
-          >
-            Join Us
-          </button>
-        </div>
+        <button 
+          onClick={onConnectClick}
+          className="hidden md:inline-block border border-white px-8 py-3 text-xs font-bold tracking-widest uppercase hover:bg-white hover:text-black transition-all duration-300 text-white cursor-pointer bg-transparent"
+          data-hover="true"
+        >
+          Join Us
+        </button>
 
         {/* Mobile Menu Toggle */}
         <button 
