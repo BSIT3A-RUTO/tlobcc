@@ -17,6 +17,9 @@ import Home from './pages/Home';
 import About from './pages/About';
 import Ministries from './pages/Ministries';
 import Sermons from './pages/Sermons';
+import AdminLogin from './pages/AdminLogin';
+import AdminDashboard from './pages/AdminDashboard';
+import AdminRoute from './components/AdminRoute';
 
 const App: React.FC = () => {
   const [connectModalOpen, setConnectModalOpen] = useState(false);
@@ -35,6 +38,8 @@ const App: React.FC = () => {
           <Route path="/about" element={<About />} />
           <Route path="/ministries" element={<Ministries />} />
           <Route path="/sermons" element={<Sermons />} />
+          <Route path="/admin/login" element={<AdminLogin />} />
+          <Route path="/admin" element={<AdminRoute><AdminDashboard /></AdminRoute>} />
         </Routes>
 
         <Footer />

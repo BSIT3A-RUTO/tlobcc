@@ -4,9 +4,27 @@ import { ChevronLeft, ChevronRight, X, Calendar } from 'lucide-react';
 import MinistryCard from '../components/MinistryCard';
 import { MINISTRIES } from '../data';
 import { Ministry } from '../types';
+import { getMinistries } from '../services/contentService';
 
 const Ministries: React.FC = () => {
   const [selectedMinistry, setSelectedMinistry] = useState<Ministry | null>(null);
+  const [ministriesData, setMinistriesData] = useState<Ministry[]>(MINISTRIES);
+
+  useEffect(() => {
+    let mounted = true;
+    const loadMinistries = async () => {
+      try {
+        const docs = await getMinistries();
+        if (mounted && docs.length > 0) {
+          setMinistriesData(docs as Ministry[]);
+        }
+      } catch (error) {
+        // fallback to static data
+      }
+    };
+    loadMinistries();
+    return () => { mounted = false; };
+  }, []);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -43,7 +61,7 @@ const Ministries: React.FC = () => {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 border-t border-l border-white/10 bg-black/20 backdrop-blur-sm">
-            {MINISTRIES.map((ministry) => (
+            {ministriesData.map((ministry) => (
               <MinistryCard key={ministry.id} ministry={ministry} onClick={() => setSelectedMinistry(ministry)} />
             ))}
           </div>

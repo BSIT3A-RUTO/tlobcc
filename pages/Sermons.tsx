@@ -1,9 +1,28 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { PlayCircle, User } from 'lucide-react';
 import { SERMONS } from '../data';
+import { getSermons, SermonRecord } from '../services/contentService';
 
 const Sermons: React.FC = () => {
+  const [sermons, setSermons] = useState<SermonRecord[]>([]);
+
+  useEffect(() => {
+    let mounted = true;
+    const load = async () => {
+      try {
+        const data = await getSermons();
+        if (mounted && data.length > 0) setSermons(data);
+      } catch {
+        if (mounted) setSermons(SERMONS.map((s) => ({ ...s, id: String(s.id) })));
+      }
+    };
+    load();
+    return () => { mounted = false; };
+  }, []);
+
+  const displaySermons = sermons.length > 0 ? sermons : SERMONS.map((s) => ({ ...s, id: String(s.id) }));
+
   return (
     <div className="pt-32 pb-20">
       {/* LIVE STREAM SECTION */}
@@ -40,7 +59,7 @@ const Sermons: React.FC = () => {
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8">
-            {SERMONS.map((sermon) => (
+            {displaySermons.map((sermon) => (
               <a 
                 key={sermon.id}
                 href={`https://www.youtube.com/watch?v=${sermon.videoId}`}

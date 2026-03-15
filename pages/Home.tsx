@@ -1,11 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, useScroll, useTransform } from 'framer-motion';
 import { ChevronRight, PlayCircle, Clock, MapPin, Ticket, Zap, Globe, Heart } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import GradientText from '../components/GlitchText';
 import { SERMONS, EVENTS } from '../data';
 import ConnectModal from '../components/ConnectModal';
 import PrayerModal from '../components/PrayerModal';
+import { getSiteMetadata, getSermons, getEvents, SiteMetadata } from '../services/contentService';
 
 const Home: React.FC = () => {
   const { scrollYProgress } = useScroll();
@@ -15,6 +15,33 @@ const Home: React.FC = () => {
   const [connectModalOpen, setConnectModalOpen] = useState(false);
   const [connectModalType, setConnectModalType] = useState<'visit' | 'group' | 'donate' | null>(null);
   const [prayerModalOpen, setPrayerModalOpen] = useState(false);
+  const [siteMetadata, setSiteMetadata] = useState<SiteMetadata | null>(null);
+  const [sermonsData, setSermonsData] = useState(SERMONS);
+  const [eventsData, setEventsData] = useState(EVENTS);
+
+  useEffect(() => {
+    const load = async () => {
+      try {
+        const meta = await getSiteMetadata();
+        if (meta) setSiteMetadata(meta);
+      } catch {
+        setSiteMetadata(null);
+      }
+      try {
+        const sermons = await getSermons();
+        if (sermons.length) setSermonsData(sermons);
+      } catch {
+        // fallback
+      }
+      try {
+        const events = await getEvents();
+        if (events.length) setEventsData(events);
+      } catch {
+        // fallback
+      }
+    };
+    load();
+  }, []);
 
   const handleConnectClick = (type: 'visit' | 'group' | 'donate') => {
     setConnectModalType(type);
@@ -42,10 +69,10 @@ const Home: React.FC = () => {
 
           <div className="relative w-full flex justify-center items-center mt-6 md:mt-10 mb-2 md:mb-4">
             <h1 
-              data-text="TLOBCC"
+              data-text={siteMetadata?.heroTitle || 'TLOBCC'}
               className="relative inline-block w-fit font-heading text-[15vw] md:text-[14vw] leading-[0.9] font-black tracking-tighter text-center text-transparent bg-clip-text bg-gradient-to-r from-cyan-300 via-white to-blue-400 animate-gradient z-10 before:content-[attr(data-text)] before:absolute before:left-0 before:top-0 before:-z-10 before:text-shadow-3d before:text-stroke-2"
             >
-              TLOBCC
+              {siteMetadata?.heroTitle || 'TLOBCC'}
             </h1>
             <motion.div 
                className="absolute -z-20 w-[50vw] h-[30vw] bg-white/5 blur-[40px] rounded-full pointer-events-none will-change-transform"
@@ -68,7 +95,7 @@ const Home: React.FC = () => {
             transition={{ delay: 0.8, duration: 1 }}
             className="text-base md:text-2xl font-light max-w-xl mx-auto text-white/90 leading-relaxed drop-shadow-lg px-4"
           >
-            Loving God. Reaching People. Making Disciples.
+            {siteMetadata?.mission || 'Loving God. Reaching People. Making Disciples.'}
           </motion.p>
         </motion.div>
 
@@ -83,8 +110,7 @@ const Home: React.FC = () => {
               <div key={key} className="flex whitespace-nowrap shrink-0">
                 {[...Array(4)].map((_, i) => (
                   <span key={i} className="text-3xl md:text-7xl font-heading font-black px-8 flex items-center gap-4">
-                    THE LORD OUR BANNER <span className="text-black text-2xl md:text-4xl">●</span> 
-                    CHRISTIAN CHURCH <span className="text-black text-2xl md:text-4xl">●</span> 
+                    {siteMetadata?.marqueeText || 'THE LORD OUR BANNER ● CHRISTIAN CHURCH'} <span className="text-black text-2xl md:text-4xl">●</span> 
                   </span>
                 ))}
               </div>
@@ -107,7 +133,7 @@ const Home: React.FC = () => {
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8">
-            {SERMONS.slice(0, 3).map((sermon) => (
+            {sermonsData.slice(0, 3).map((sermon) => (
               <Link to="/sermons" key={sermon.id}>
                 <motion.div 
                   whileHover={{ y: -10 }}
@@ -145,7 +171,7 @@ const Home: React.FC = () => {
           </div>
 
           <div className="space-y-4">
-            {EVENTS.map((event) => (
+            {eventsData.map((event) => (
               <motion.div 
                 key={event.id}
                 whileHover={{ x: 10 }}

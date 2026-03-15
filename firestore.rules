@@ -43,9 +43,8 @@ service cloud.firestore {
     
     function isAdmin() {
       return isAuthenticated() &&
-        (exists(/databases/$(database)/documents/users/$(request.auth.uid)) && 
-         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin' ||
-          (request.auth.token.email == "jasonruto11@gmail.com" && request.auth.token.email_verified == true)); // Default admin
+        exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.isAdmin == true;
     }
     
     function hasRequiredFields(fields) {
@@ -125,10 +124,34 @@ service cloud.firestore {
     
     match /users/{userId} {
       allow read: if isAdmin() || (isAuthenticated() && request.auth.uid == userId);
-      // Only admins can create or update users (to prevent privilege escalation)
       allow create, update, delete: if isAdmin();
     }
-    
+
+    match /siteMetadata/{docId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    match /sermons/{docId} {
+      allow read: if true;
+      allow create, update, delete: if isAdmin();
+    }
+
+    match /events/{docId} {
+      allow read: if true;
+      allow create, update, delete: if isAdmin();
+    }
+
+    match /ministries/{docId} {
+      allow read: if true;
+      allow create, update, delete: if isAdmin();
+    }
+
+    match /testimonials/{docId} {
+      allow read: if true;
+      allow create, update, delete: if isAdmin();
+    }
+
     // Default deny
     match /{document=**} {
       allow read, write: if false;
