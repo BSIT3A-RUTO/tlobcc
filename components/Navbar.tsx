@@ -1,29 +1,54 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Menu, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 interface NavbarProps {
   onConnectClick: () => void;
+  bannerText?: string;
 }
 
-const Navbar: React.FC<NavbarProps> = ({ onConnectClick }) => {
+const Navbar: React.FC<NavbarProps> = ({ onConnectClick, bannerText }) => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const location = useLocation();
+
+  useEffect(() => {
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        setMobileMenuOpen(false);
+      }
+    };
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, []);
 
   const navLinks = [
     { name: 'Home', path: '/' },
     { name: 'About', path: '/about' },
     { name: 'Ministries', path: '/ministries' },
+    { name: 'Events', path: '/events' },
     { name: 'Sermons', path: '/sermons' },
   ];
 
   return (
     <>
-      <nav className="fixed top-0 left-0 right-0 z-40 flex items-center justify-between px-6 md:px-8 py-6 bg-transparent">
+      {bannerText && (
+        <div className="fixed top-0 left-0 right-0 z-20 bg-white text-black text-center py-1 px-2 text-sm md:text-base font-black tracking-[0.15em] uppercase shadow border-b border-slate-200">
+          <motion.div
+            animate={{ x: [-6, 6, -6] }}
+            transition={{ repeat: Infinity, repeatType: 'loop', duration: 5, ease: 'easeInOut' }}
+            className="inline-block"
+          >
+            <span className="inline-block max-w-full break-words text-base md:text-base font-extrabold tracking-tight leading-tight">
+              {bannerText}
+            </span>
+          </motion.div>
+        </div>
+      )}
+      <nav aria-label="Main navigation" className={`fixed left-0 right-0 z-40 flex items-center justify-between px-6 md:px-8 py-6 bg-transparent ${bannerText ? 'top-10 md:top-7' : 'top-0'}`}>
         <Link to="/" className="flex items-center gap-3 z-50">
-          <img src="/TLOB%20LOGO%20UPDATED.png" alt="TLOBCC Logo" className="w-10 h-10 md:w-12 md:h-12 object-contain rounded-full bg-white/10" />
-          <div className="font-heading text-xl md:text-2xl font-bold tracking-tighter text-white">TLOBCC</div>
+          <img src="/TLOB%20LOGO%20UPDATED.png" alt="TLOBCC Logo" className="w-10 h- md:w-12 md:h-12 object-contain rounded-full bg-white/10" />
+          <div className="font-heading text-xl md:text-xl font-bold tracking-tighter text-white">TLOBCC</div>
         </Link>
         
         {/* Desktop Menu */}

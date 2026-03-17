@@ -18,9 +18,11 @@ const Home: React.FC = () => {
   const [siteMetadata, setSiteMetadata] = useState<SiteMetadata | null>(null);
   const [sermonsData, setSermonsData] = useState(SERMONS);
   const [eventsData, setEventsData] = useState(EVENTS);
+  const [isLoadingContent, setIsLoadingContent] = useState(true);
 
   useEffect(() => {
     const load = async () => {
+      setIsLoadingContent(true);
       try {
         const meta = await getSiteMetadata();
         if (meta) setSiteMetadata(meta);
@@ -39,6 +41,7 @@ const Home: React.FC = () => {
       } catch {
         // fallback
       }
+      setIsLoadingContent(false);
     };
     load();
   }, []);
@@ -62,9 +65,9 @@ const Home: React.FC = () => {
             transition={{ duration: 1, delay: 0.2 }}
             className="flex items-center gap-3 md:gap-6 text-xs md:text-base font-mono text-[#a8fbd3] tracking-[0.2em] md:tracking-[0.3em] uppercase mb-4 bg-black/20 px-4 py-2 rounded-full backdrop-blur-sm"
           >
-            <span>Navotas</span>
+            <span>Welcome, TLOB fam!</span>
             <span className="w-1.5 h-1.5 md:w-2 md:h-2 bg-[#4fb7b3] rounded-full animate-pulse"/>
-            <span>Sunday 9AM</span>
+            <span>Hope all is well with you!</span>
           </motion.div>
 
           <div className="relative w-full flex justify-center items-center mt-6 md:mt-10 mb-2 md:mb-4">
@@ -133,29 +136,35 @@ const Home: React.FC = () => {
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8">
-            {sermonsData.slice(0, 3).map((sermon) => (
-              <Link to="/sermons" key={sermon.id}>
-                <motion.div 
-                  whileHover={{ y: -10 }}
-                  className="group relative bg-white/5 border border-white/10 overflow-hidden cursor-pointer"
-                  data-hover="true"
-                >
-                  <div className="relative h-48 md:h-64 overflow-hidden">
-                    <img src={sermon.image} alt={sermon.title} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110 grayscale group-hover:grayscale-0" />
-                    <div className="absolute inset-0 bg-black/40 group-hover:bg-black/20 transition-colors flex items-center justify-center">
-                      <PlayCircle className="w-16 h-16 text-white opacity-70 group-hover:opacity-100 group-hover:scale-110 transition-all" />
+            {isLoadingContent ? (
+              [...Array(3)].map((_, index) => (
+                <div key={index} className="animate-pulse rounded-xl border border-white/10 bg-slate-900/30 h-[320px]" />
+              ))
+            ) : (
+              sermonsData.slice(0, 3).map((sermon) => (
+                <Link to="/sermons" key={sermon.id}>
+                  <motion.div 
+                    whileHover={{ y: -10 }}
+                    className="group relative bg-white/5 border border-white/10 overflow-hidden cursor-pointer"
+                    data-hover="true"
+                  >
+                    <div className="relative h-48 md:h-64 overflow-hidden">
+                      <img loading="lazy" src={sermon.image} alt={sermon.title || 'Sermon image'} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110 grayscale group-hover:grayscale-0" />
+                      <div className="absolute inset-0 bg-black/40 group-hover:bg-black/20 transition-colors flex items-center justify-center">
+                        <PlayCircle className="w-16 h-16 text-white opacity-70 group-hover:opacity-100 group-hover:scale-110 transition-all" />
+                      </div>
                     </div>
-                  </div>
-                  <div className="p-6">
-                    <div className="flex justify-between items-center mb-3">
-                      <span className="text-xs font-mono text-[#4fb7b3] border border-[#4fb7b3]/30 px-2 py-1 rounded-full">{sermon.series}</span>
-                      <span className="text-xs text-gray-400 font-mono">{sermon.date}</span>
+                    <div className="p-6">
+                      <div className="flex justify-between items-center mb-3">
+                        <span className="text-xs font-mono text-[#4fb7b3] border border-[#4fb7b3]/30 px-2 py-1 rounded-full">{sermon.series}</span>
+                        <span className="text-xs text-gray-200 font-mono">{sermon.date}</span>
+                      </div>
+                      <h3 className="text-xl md:text-2xl font-heading font-bold mb-2">{sermon.title}</h3>
                     </div>
-                    <h3 className="text-xl md:text-2xl font-heading font-bold mb-2">{sermon.title}</h3>
-                  </div>
-                </motion.div>
-              </Link>
-            ))}
+                  </motion.div>
+                </Link>
+              ))
+            )}
           </div>
         </div>
       </section>
@@ -171,26 +180,32 @@ const Home: React.FC = () => {
           </div>
 
           <div className="space-y-4">
-            {eventsData.map((event) => (
-              <motion.div 
-                key={event.id}
-                whileHover={{ x: 10 }}
-                className="flex flex-col md:flex-row bg-black/40 border border-white/10 hover:border-[#4fb7b3]/50 transition-colors group"
-              >
-                <div className="md:w-48 bg-white/5 p-6 flex flex-col items-center justify-center border-b md:border-b-0 md:border-r border-white/10 text-center">
-                  <span className="text-[#a8fbd3] font-bold text-xl md:text-2xl tracking-wider">{event.date.split(' ')[0]}</span>
-                  <span className="text-3xl md:text-4xl font-black font-heading">{event.date.split(' ')[1]}</span>
-                </div>
-                <div className="p-6 md:p-8 flex-1 flex flex-col justify-center">
-                  <h3 className="text-2xl font-bold font-heading mb-2 group-hover:text-[#a8fbd3] transition-colors">{event.title}</h3>
-                  <p className="text-gray-400 mb-4">{event.description}</p>
-                  <div className="flex flex-wrap gap-4 text-sm font-mono text-gray-300">
-                    <span className="flex items-center gap-2"><Clock className="w-4 h-4 text-[#4fb7b3]" /> {event.time}</span>
-                    <span className="flex items-center gap-2"><MapPin className="w-4 h-4 text-[#4fb7b3]" /> {event.location}</span>
+            {isLoadingContent ? (
+              [...Array(2)].map((_, index) => (
+                <div key={index} className="h-40 rounded-xl border border-white/10 bg-slate-900/30 animate-pulse" />
+              ))
+            ) : (
+              eventsData.map((event) => (
+                <motion.div 
+                  key={event.id}
+                  whileHover={{ x: 10 }}
+                  className="flex flex-col md:flex-row bg-black/40 border border-white/10 hover:border-[#4fb7b3]/50 transition-colors group"
+                >
+                  <div className="md:w-48 bg-white/5 p-6 flex flex-col items-center justify-center border-b md:border-b-0 md:border-r border-white/10 text-center">
+                    <span className="text-[#a8fbd3] font-bold text-xl md:text-2xl tracking-wider">{event.date.split(' ')[0]}</span>
+                    <span className="text-3xl md:text-4xl font-black font-heading">{event.date.split(' ')[1]}</span>
                   </div>
-                </div>
-              </motion.div>
-            ))}
+                  <div className="p-6 md:p-8 flex-1 flex flex-col justify-center">
+                    <h3 className="text-2xl font-bold font-heading mb-2 group-hover:text-[#a8fbd3] transition-colors">{event.title}</h3>
+                    <p className="text-gray-200 mb-4">{event.description}</p>
+                    <div className="flex flex-wrap gap-4 text-sm font-mono text-gray-300">
+                      <span className="flex items-center gap-2"><Clock className="w-4 h-4 text-[#4fb7b3]" /> {event.time}</span>
+                      <span className="flex items-center gap-2"><MapPin className="w-4 h-4 text-[#4fb7b3]" /> {event.location}</span>
+                    </div>
+                  </div>
+                </motion.div>
+              ))
+            )}
           </div>
         </div>
       </section>

@@ -21,6 +21,7 @@ export interface SiteMetadata {
   ctaPrimary: string;
   ctaSecondary: string;
   marqueeText: string;
+  bannerText?: string;
 }
 
 export interface SermonRecord {
@@ -40,6 +41,9 @@ export interface EventRecord {
   time: string;
   location: string;
   description: string;
+  postLink?: string;
+  registerLink?: string;
+  publishAt?: string;
 }
 
 export interface MinistryRecord {
@@ -49,6 +53,20 @@ export interface MinistryRecord {
   day: string;
   image: string;
   description: string;
+}
+
+export interface TestimonyRecord {
+  id: string;
+  quote: string;
+  author: string;
+  role: string;
+}
+
+export interface PastorRecord {
+  id: string;
+  name: string;
+  role: string;
+  image: string;
 }
 
 const siteMetadataRef = doc(db, 'siteMetadata', 'main');
@@ -117,4 +135,45 @@ export async function upsertMinistry(item: MinistryRecord): Promise<void> {
 
 export async function deleteMinistry(id: string): Promise<void> {
   await deleteDoc(doc(ministriesCollection, id));
+}
+
+const testimonialsCollection = collection(db, 'testimonials');
+const pastorsCollection = collection(db, 'pastors');
+
+export async function getTestimonials(): Promise<TestimonyRecord[]> {
+  const snapshot = await getDocs(query(testimonialsCollection));
+  return snapshot.docs.map((docSnap) => mapDoc<TestimonyRecord>(docSnap));
+}
+
+export async function upsertTestimonial(item: TestimonyRecord): Promise<void> {
+  const ref = doc(testimonialsCollection, item.id);
+  await setDoc(ref, { ...item, updatedAt: serverTimestamp() });
+}
+
+export async function addTestimonial(item: Omit<TestimonyRecord, 'id'>): Promise<string> {
+  const docRef = await addDoc(testimonialsCollection, { ...item, createdAt: serverTimestamp() });
+  return docRef.id;
+}
+
+export async function deleteTestimonial(id: string): Promise<void> {
+  await deleteDoc(doc(testimonialsCollection, id));
+}
+
+export async function getPastors(): Promise<PastorRecord[]> {
+  const snapshot = await getDocs(query(pastorsCollection));
+  return snapshot.docs.map((docSnap) => mapDoc<PastorRecord>(docSnap));
+}
+
+export async function upsertPastor(item: PastorRecord): Promise<void> {
+  const ref = doc(pastorsCollection, item.id);
+  await setDoc(ref, { ...item, updatedAt: serverTimestamp() });
+}
+
+export async function addPastor(item: Omit<PastorRecord, 'id'>): Promise<string> {
+  const docRef = await addDoc(pastorsCollection, { ...item, createdAt: serverTimestamp() });
+  return docRef.id;
+}
+
+export async function deletePastor(id: string): Promise<void> {
+  await deleteDoc(doc(pastorsCollection, id));
 }

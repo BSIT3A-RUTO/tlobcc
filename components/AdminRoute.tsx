@@ -23,7 +23,8 @@ const AdminRoute: React.FC<AdminRouteProps> = ({ children }) => {
 
       try {
         const userDoc = await getDoc(doc(db, 'users', user.uid));
-        const admin = userDoc.exists() && userDoc.data()?.isAdmin;
+        const data = userDoc.exists() ? userDoc.data() : {};
+        const admin = data?.isAdmin === true || data?.admin === true || data?.role === 'admin' || data?.role === 'superadmin';
         setIsAdmin(Boolean(admin));
       } catch {
         setIsAdmin(false);
@@ -40,6 +41,7 @@ const AdminRoute: React.FC<AdminRouteProps> = ({ children }) => {
   }
 
   if (!isAdmin) {
+    auth.signOut().catch(() => {});
     return <Navigate to="/admin/login" replace />;
   }
 

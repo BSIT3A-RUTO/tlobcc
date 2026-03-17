@@ -2,9 +2,29 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { Globe, Zap, Music } from 'lucide-react';
 import GradientText from '../components/GlitchText';
-import { PASTORS } from '../data';
+import { getPastors, PastorRecord } from '../services/contentService';
+import { useState, useEffect } from 'react';
 
 const About: React.FC = () => {
+  const [pastors, setPastors] = useState<PastorRecord[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const load = async () => {
+      try {
+        const data = await getPastors();
+        if (data.length > 0) {
+          setPastors(data);
+        }
+      } catch {
+        // fallback empty
+      } finally {
+        setLoading(false);
+      }
+    };
+    load();
+  }, []);
+
   return (
     <div className="pt-32 pb-20">
       {/* EXPERIENCE SECTION */}
@@ -71,19 +91,25 @@ const About: React.FC = () => {
               <p className="text-gray-300 max-w-2xl mx-auto">Dedicated leaders serving our church family and community.</p>
             </div>
             
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-              {PASTORS.map((pastor, i) => (
-                <div key={i} className="group relative overflow-hidden bg-white/5 border border-white/10">
-                  <div className="aspect-[3/4] overflow-hidden">
-                    <img src={pastor.image} alt={pastor.name} className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-700 group-hover:scale-105" />
+            {loading ? (
+              <div className="text-center py-12 text-gray-400">Loading team...</div>
+            ) : pastors.length === 0 ? (
+              <div className="text-center py-12 text-gray-500">No team members yet.</div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                {pastors.map((pastor, i) => (
+                  <div key={pastor.id} className="group relative overflow-hidden bg-white/5 border border-white/10">
+                    <div className="aspect-[3/4] overflow-hidden">
+                      <img src={pastor.image} alt={pastor.name} className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-700 group-hover:scale-105" />
+                    </div>
+                    <div className="absolute bottom-0 left-0 w-full p-6 bg-gradient-to-t from-black via-black/80 to-transparent translate-y-4 group-hover:translate-y-0 transition-transform">
+                      <h4 className="text-xl font-bold font-heading text-white">{pastor.name}</h4>
+                      <p className="text-[#a8fbd3] text-sm font-mono uppercase tracking-widest mt-1">{pastor.role}</p>
+                    </div>
                   </div>
-                  <div className="absolute bottom-0 left-0 w-full p-6 bg-gradient-to-t from-black via-black/80 to-transparent translate-y-4 group-hover:translate-y-0 transition-transform">
-                    <h4 className="text-xl font-bold font-heading text-white">{pastor.name}</h4>
-                    <p className="text-[#a8fbd3] text-sm font-mono uppercase tracking-widest mt-1">{pastor.role}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            )}
           </div>
         </div>
       </section>

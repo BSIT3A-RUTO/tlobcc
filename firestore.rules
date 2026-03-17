@@ -44,7 +44,12 @@ service cloud.firestore {
     function isAdmin() {
       return isAuthenticated() &&
         exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
-        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.isAdmin == true;
+        (
+          get(/databases/$(database)/documents/users/$(request.auth.uid)).data.isAdmin == true ||
+          get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin' ||
+          get(/databases/$(database)/documents/users/$(request.auth.uid)).data.admin == true ||
+          get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'superadmin'
+        );
     }
     
     function hasRequiredFields(fields) {
@@ -124,12 +129,14 @@ service cloud.firestore {
     
     match /users/{userId} {
       allow read: if isAdmin() || (isAuthenticated() && request.auth.uid == userId);
-      allow create, update, delete: if isAdmin();
+      allow create: if isAuthenticated() && request.auth.uid == userId;
+      allow update: if isAdmin() || (isAuthenticated() && request.auth.uid == userId);
+      allow delete: if isAdmin();
     }
 
     match /siteMetadata/{docId} {
       allow read: if true;
-      allow write: if isAdmin();
+      allow write: if isAuthenticated();
     }
 
     match /sermons/{docId} {
@@ -148,6 +155,11 @@ service cloud.firestore {
     }
 
     match /testimonials/{docId} {
+      allow read: if true;
+      allow create, update, delete: if isAdmin();
+    }
+
+    match /pastors/{docId} {
       allow read: if true;
       allow create, update, delete: if isAdmin();
     }

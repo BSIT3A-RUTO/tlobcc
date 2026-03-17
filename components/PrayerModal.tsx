@@ -70,6 +70,9 @@ const PrayerModal: React.FC<PrayerModalProps> = ({ isOpen, onClose }) => {
           exit={{ opacity: 0 }}
           className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
           onClick={onClose}
+          role="dialog"
+          aria-modal="true"
+          aria-label="Prayer request form"
         >
           <motion.div
             initial={{ scale: 0.95, y: 20, opacity: 0 }}
@@ -83,6 +86,7 @@ const PrayerModal: React.FC<PrayerModalProps> = ({ isOpen, onClose }) => {
 
             <button
               onClick={onClose}
+              aria-label="Close prayer dialog"
               className="absolute top-4 right-4 text-white/50 hover:text-white transition-colors"
             >
               <X className="w-6 h-6" />

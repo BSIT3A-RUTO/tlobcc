@@ -25,6 +25,8 @@ export async function createAdminUser(email: string, password: string, displayNa
   await setDoc(doc(db, 'users', user.uid), {
     email: user.email,
     isAdmin: true,
+    role: 'admin',
+    admin: true,
     displayName: user.displayName || null,
     createdAt: new Date().toISOString(),
   });
@@ -40,11 +42,12 @@ export async function signInAdmin(email: string, password: string): Promise<Admi
   const credential = await signInWithEmailAndPassword(auth, email, password);
   const user = credential.user;
   const userDoc = await getDoc(doc(db, 'users', user.uid));
-  const isAdmin = userDoc.exists() && userDoc.data()?.isAdmin;
+  const userData = userDoc.exists() ? userDoc.data() : null;
+  const isAdmin = Boolean(userData?.isAdmin === true || userData?.role === 'admin');
 
   if (!isAdmin) {
     await signOut(auth);
-    throw new Error('Unauthorized: admin access required.');
+    throw new Error('Unauthorized: admin access required. Please set users/{uid}.isAdmin=true or role="admin" in Firestore.');
   }
 
   return {
