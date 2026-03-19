@@ -27,7 +27,7 @@ const PrayerModal: React.FC<PrayerModalProps> = ({ isOpen, onClose }) => {
       const dataToSave = {
         request: formData.request,
         isPrivate: formData.isAnonymous,
-        createdAt: serverTimestamp(),
+        createdAt: new Date(),
       };
       
       if (!formData.isAnonymous) {
@@ -38,6 +38,16 @@ const PrayerModal: React.FC<PrayerModalProps> = ({ isOpen, onClose }) => {
       }
 
       await addDoc(collection(db, 'prayerRequests'), dataToSave);
+      await addDoc(collection(db, 'adminNotifications'), {
+        type: 'prayer',
+        name: formData.isAnonymous ? 'Anonymous' : formData.name || 'Anonymous',
+        email: formData.email || null,
+        request: formData.request,
+        isPrivate: formData.isAnonymous,
+        createdAt: new Date(),
+        isRead: false,
+        label: 'Prayer Request',
+      });
       
       setIsSubmitting(false);
       setIsSuccess(true);

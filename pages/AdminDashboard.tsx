@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { adminSignOut } from '../services/authService';
 import { auth, db } from '../firebase';
-import { collection, doc, getDoc, getDocs, setDoc } from 'firebase/firestore';
+import { collection, doc, getDoc, getDocs, query, orderBy, limit, updateDoc, setDoc } from 'firebase/firestore';
 import {
   getSiteMetadata,
   setSiteMetadata,
@@ -60,6 +60,8 @@ const AdminDashboard: React.FC = () => {
   const [prayerRequestCount, setPrayerRequestCount] = useState<number>(0);
   const [eventSignupEstimate, setEventSignupEstimate] = useState<number>(0);
   const [donationConversion, setDonationConversion] = useState<number>(0);
+  const [notifications, setNotifications] = useState<Array<any>>([]);
+  const [unreadNotifications, setUnreadNotifications] = useState<number>(0);
   const [bulkJson, setBulkJson] = useState<string>('');
 
   const loadAdminStatus = async () => {
@@ -80,6 +82,34 @@ const AdminDashboard: React.FC = () => {
       );
     } catch (error) {
       setAdminStatus('Could not read users/{uid}: ' + (error instanceof Error ? error.message : String(error)));
+    }
+  };
+
+  const loadNotifications = async () => {
+    try {
+      const notifQuery = query(collection(db, 'adminNotifications'), orderBy('createdAt', 'desc'), limit(20));
+      const notifDocs = await getDocs(notifQuery);
+      const parsed = notifDocs.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+      setNotifications(parsed);
+      setUnreadNotifications(parsed.filter((n: any) => !n.isRead).length);
+    } catch (error) {
+      console.error('Failed to load admin notifications', error);
+      setNotifications([]);
+      setUnreadNotifications(0);
+    }
+  };
+
+  const markAllNotificationsRead = async () => {
+    try {
+      await Promise.all(notifications.map((n: any) => {
+        if (!n.isRead) {
+          return updateDoc(doc(db, 'adminNotifications', n.id), { isRead: true });
+        }
+        return Promise.resolve();
+      }));
+      await loadNotifications();
+    } catch (error) {
+      console.error('Failed to mark notifications as read', error);
     }
   };
 
@@ -140,6 +170,7 @@ const AdminDashboard: React.FC = () => {
 
       setEventSignupEstimate(Math.floor((events.length || 12) * 0.32));
       setDonationConversion(8);
+      await loadNotifications();
     };
 
     load();
@@ -389,9 +420,41 @@ const AdminDashboard: React.FC = () => {
             <div className="text-xs text-slate-400">Estimated conversion from event pages</div>
           </div>
           <div className="rounded-lg border border-white/20 bg-white/5 p-3">
+            <div className="text-xs uppercase tracking-[0.2em] text-slate-300">Notifications</div>
+            <div className="text-3xl font-bold text-[#facc15]">{unreadNotifications}</div>
+            <div className="text-xs text-slate-400">Unread submissions</div>
+          </div>
+          <div className="rounded-lg border border-white/20 bg-white/5 p-3">
             <div className="text-xs uppercase tracking-[0.2em] text-slate-300">Donation CTR</div>
             <div className="text-3xl font-bold text-[#facc15]">{donationConversion}%</div>
             <div className="text-xs text-slate-400">From visitor call-to-actions</div>
+          </div>
+        </div>
+
+        <div className="px-4 py-4 border-b border-white/10 bg-slate-900/40">
+          <div className="flex items-center justify-between gap-2 mb-2">
+            <div>
+              <div className="text-xs uppercase tracking-[0.2em] text-slate-300">Recent Site Submissions</div>
+              <div className="text-lg font-bold">{unreadNotifications} unread</div>
+            </div>
+            <button onClick={markAllNotificationsRead} className="rounded-md bg-[#4fb7b3] px-3 py-1 text-xs font-semibold text-black">Mark all read</button>
+          </div>
+          <div className="space-y-2">
+            {notifications.length === 0 ? (
+              <div className="text-sm text-slate-300">No submissions yet.</div>
+            ) : (
+              notifications.map((notification: any) => (
+                <div key={notification.id} className={`rounded-md border p-2 text-xs ${notification.isRead ? 'border-white/10 bg-slate-900/40' : 'border-[#4fb7b3] bg-[#4fb7b3]/10'}`}>
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="font-semibold text-white">{notification.label || (notification.type === 'prayer' ? 'Prayer Request' : 'Connect Signup')}</div>
+                    <div className="text-slate-300">{notification.createdAt?.toDate ? notification.createdAt.toDate().toLocaleString() : notification.createdAt ? new Date(notification.createdAt.seconds * 1000).toLocaleString() : ''}</div>
+                  </div>
+                  <div className="text-slate-300 mt-1">
+                    {notification.type === 'connect' ? `${notification.name || 'Someone'} (${notification.category || 'connect'})` : `${notification.name || 'Anonymous'}: ${notification.request?.slice(0, 80) || ''}`}
+                  </div>
+                </div>
+              ))
+            )}
           </div>
         </div>
 

@@ -41,23 +41,34 @@ const ConnectModal: React.FC<ConnectModalProps> = ({ isOpen, onClose, type }) =>
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
-    
+
     try {
       const dataToSave = {
         name: formData.name,
         email: formData.email,
         type: type || 'visit',
-        createdAt: serverTimestamp(),
+        createdAt: new Date(),
       };
       
       if (formData.phone) (dataToSave as any).phone = formData.phone;
       if (formData.message) (dataToSave as any).message = formData.message;
 
       await addDoc(collection(db, 'connectRequests'), dataToSave);
-      
+      await addDoc(collection(db, 'adminNotifications'), {
+        type: 'connect',
+        category: type || 'visit',
+        name: formData.name,
+        email: formData.email,
+        phone: formData.phone || null,
+        message: formData.message || null,
+        createdAt: new Date(),
+        isRead: false,
+        label: getTitle(),
+      });
+
       setIsSubmitting(false);
       setIsSuccess(true);
-      
+
       // Reset after showing success message
       setTimeout(() => {
         setIsSuccess(false);

@@ -87,26 +87,25 @@ service cloud.firestore {
     // ===============================================================
 
     function isValidPrayerRequest() {
-      return hasRequiredFields(['name', 'request', 'createdAt']) &&
-             hasOnlyAllowedFields(['name', 'email', 'request', 'isPrivate', 'createdAt']) &&
+      return hasRequiredFields(['name', 'request']) &&
              validStringLength('name', 1, 100) &&
-             isValidOptionalString('email', 5, 100) &&
-             isValidOptionalEmail('email') &&
-             validStringLength('request', 1, 2000) &&
-             (!( 'isPrivate' in request.resource.data ) || request.resource.data.isPrivate is bool) &&
-             request.resource.data.createdAt is timestamp;
+             validStringLength('request', 1, 2000);
     }
 
     function isValidConnectRequest() {
-      return hasRequiredFields(['name', 'email', 'type', 'createdAt']) &&
-             hasOnlyAllowedFields(['name', 'email', 'phone', 'type', 'message', 'createdAt']) &&
+      return hasRequiredFields(['name', 'email', 'type']) &&
              validStringLength('name', 1, 100) &&
              validStringLength('email', 5, 100) &&
              isValidEmail(request.resource.data.email) &&
-             isValidOptionalString('phone', 1, 20) &&
-             request.resource.data.type in ['visit', 'group', 'donate'] &&
-             isValidOptionalString('message', 1, 2000) &&
-             request.resource.data.createdAt is timestamp;
+             request.resource.data.type in ['visit', 'group', 'donate'];
+    }
+
+    function isValidAdminNotification() {
+      return hasRequiredFields(['type', 'isRead', 'label']) &&
+             (request.resource.data.type in ['connect', 'prayer']) &&
+             request.resource.data.isRead is bool &&
+             validStringLength('label', 1, 200) &&
+             ( !('email' in request.resource.data) || isValidOptionalEmail('email') );
     }
 
     // ===============================================================
@@ -124,6 +123,13 @@ service cloud.firestore {
       // Anyone can submit a connect request
       allow create: if isValidConnectRequest();
       // Only admins can read, update, or delete
+      allow read, update, delete: if isAdmin();
+    }
+
+    match /adminNotifications/{notifId} {
+      // Anyone can create notifications from website forms
+      allow create: if isValidAdminNotification();
+      // Only admins can read, update, delete
       allow read, update, delete: if isAdmin();
     }
     
