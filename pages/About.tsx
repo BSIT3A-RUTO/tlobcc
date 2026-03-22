@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import { Globe, Zap, Music } from 'lucide-react';
 import GradientText from '../components/GlitchText';
 import { getPastors, PastorRecord } from '../services/contentService';
+import { getImageUrl } from '../services/storageService';
 import { useState, useEffect } from 'react';
 
 const About: React.FC = () => {
@@ -14,7 +15,14 @@ const About: React.FC = () => {
       try {
         const data = await getPastors();
         if (data.length > 0) {
-          setPastors(data);
+          // Resolve image URLs for any that are storage paths
+          const resolvedPastors = await Promise.all(
+            data.map(async (pastor) => ({
+              ...pastor,
+              image: await getImageUrl(pastor.image),
+            }))
+          );
+          setPastors(resolvedPastors);
         }
       } catch {
         // fallback empty
@@ -99,8 +107,20 @@ const About: React.FC = () => {
               <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                 {pastors.map((pastor, i) => (
                   <div key={pastor.id} className="group relative overflow-hidden bg-white/5 border border-white/10">
-                    <div className="aspect-[3/4] overflow-hidden">
-                      <img src={pastor.image} alt={pastor.name} className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-700 group-hover:scale-105" />
+                    <div className="aspect-[3/4] overflow-hidden bg-slate-800">
+                      {pastor.image ? (
+                        <img
+                          src={pastor.image}
+                          alt={pastor.name}
+                          className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-700 group-hover:scale-105"
+                          onError={(e) => {
+                            // Hide image on error
+                            (e.target as HTMLImageElement).style.display = 'none';
+                          }}
+                        />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center text-gray-400 text-sm">No image</div>
+                      )}
                     </div>
                     <div className="absolute bottom-0 left-0 w-full p-6 bg-gradient-to-t from-black via-black/80 to-transparent translate-y-4 group-hover:translate-y-0 transition-transform">
                       <h4 className="text-xl font-bold font-heading text-white">{pastor.name}</h4>

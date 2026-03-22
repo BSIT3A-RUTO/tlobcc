@@ -26,6 +26,7 @@ const Navbar: React.FC<NavbarProps> = ({ onConnectClick, bannerText }) => {
     { name: 'Home', path: '/' },
     { name: 'About', path: '/about' },
     { name: 'Ministries', path: '/ministries' },
+    { name: 'Pastoral Care', path: '/pastoral-care' },
     { name: 'Events', path: '/events' },
     { name: 'Sermons', path: '/sermons' },
   ];

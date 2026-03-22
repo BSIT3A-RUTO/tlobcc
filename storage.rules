@@ -1,0 +1,31 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+    // Allow authenticated users to upload images to designated folders
+    // (admin panel is already protected by Firebase Auth in the app)
+    match /pastors/{allPaths=**} {
+      allow write: if request.auth != null && request.resource.contentType.matches('image/.*');
+      allow read: if true;
+    }
+
+    match /sermons/{allPaths=**} {
+      allow write: if request.auth != null && request.resource.contentType.matches('image/.*');
+      allow read: if true;
+    }
+
+    match /events/{allPaths=**} {
+      allow write: if request.auth != null && request.resource.contentType.matches('image/.*');
+      allow read: if true;
+    }
+
+    match /ministries/{allPaths=**} {
+      allow write: if request.auth != null && request.resource.contentType.matches('image/.*');
+      allow read: if true;
+    }
+
+    // Deny everything else
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+  }
+}

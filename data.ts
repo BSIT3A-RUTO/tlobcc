@@ -67,7 +67,7 @@ export const SERMONS = [
 ];
 
 export const EVENTS = [
-  { id: '1', title: 'Night of Worship', date: 'NOV 12', time: '7:00 PM', location: 'Main Sanctuary', description: 'An extended evening of praise, worship, and waiting on the Lord.', postLink: '', registerLink: '' },
-  { id: '2', title: 'Community Outreach', date: 'NOV 18', time: '8:00 AM', location: 'Navotas City Plaza', description: 'Serving our local community through food distribution and medical assistance.', postLink: '', registerLink: '' },
-  { id: '3', title: 'Next Steps Class', date: 'NOV 19', time: '11:00 AM', location: 'Room 101', description: 'New to TLOBCC? Join us to learn more about our church and how to get connected.', postLink: '', registerLink: '' },
+  { id: '1', title: 'Night of Worship', date: 'NOV 12', time: '7:00 PM', location: 'Main Sanctuary', description: 'An extended evening of praise, worship, and waiting on the Lord.', postLink: '', registerLink: '', image: 'https://images.unsplash.com/photo-1438232992991-995b7058bbb3?q=80&w=800&auto=format&fit=crop' },
+  { id: '2', title: 'Community Outreach', date: 'NOV 18', time: '8:00 AM', location: 'Navotas City Plaza', description: 'Serving our local community through food distribution and medical assistance.', postLink: '', registerLink: '', image: 'https://images.unsplash.com/photo-1593113514676-5f0140ae288a?q=80&w=800&auto=format&fit=crop' },
+  { id: '3', title: 'Next Steps Class', date: 'NOV 19', time: '11:00 AM', location: 'Room 101', description: 'New to TLOBCC? Join us to learn more about our church and how to get connected.', postLink: '', registerLink: '', image: 'https://images.unsplash.com/photo-1523050854058-8df90110c9f1?q=80&w=800&auto=format&fit=crop' },
 ];

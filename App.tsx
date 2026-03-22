@@ -22,6 +22,7 @@ const Events = lazy(() => import('./pages/Events'));
 const Sermons = lazy(() => import('./pages/Sermons'));
 const AdminLogin = lazy(() => import('./pages/AdminLogin'));
 const AdminDashboard = lazy(() => import('./pages/AdminDashboard'));
+const PastoralCare = lazy(() => import('./pages/PastoralCare'));
 
 const AppContent: React.FC = () => {
   const [connectModalOpen, setConnectModalOpen] = useState(false);
@@ -56,6 +57,7 @@ const AppContent: React.FC = () => {
           <Route path="/ministries" element={<Ministries />} />
           <Route path="/events" element={<Events />} />
           <Route path="/sermons" element={<Sermons />} />
+          <Route path="/pastoral-care" element={<PastoralCare />} />
           <Route path="/admin/login" element={<AdminLogin />} />
           <Route path="/admin" element={<AdminRoute><AdminDashboard /></AdminRoute>} />
         </Routes>

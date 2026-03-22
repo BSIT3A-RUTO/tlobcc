@@ -1,4 +1,5 @@
 import { auth, db } from '../firebase';
+import { FirebaseError } from 'firebase/app';
 import {
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
@@ -39,11 +40,35 @@ export async function createAdminUser(email: string, password: string, displayNa
 }
 
 export async function signInAdmin(email: string, password: string): Promise<AdminUser> {
-  const credential = await signInWithEmailAndPassword(auth, email, password);
+  if (!email || !password) {
+    throw new Error('Please enter both email and password.');
+  }
+
+  let credential;
+  try {
+    credential = await signInWithEmailAndPassword(auth, email, password);
+  } catch (err) {
+    if (err instanceof FirebaseError) {
+      if (err.code === 'auth/user-not-found') {
+        throw new Error('No account found for this email. Please check your email.');
+      }
+      if (err.code === 'auth/wrong-password') {
+        throw new Error('Wrong password. Please try again.');
+      }
+      if (err.code === 'auth/invalid-email') {
+        throw new Error('Please use a valid email address.');
+      }
+      if (err.code === 'auth/invalid-credential') {
+        throw new Error('Invalid authentication credentials. Confirm your Firebase API key and user login details.');
+      }
+    }
+    throw err;
+  }
+
   const user = credential.user;
   const userDoc = await getDoc(doc(db, 'users', user.uid));
   const userData = userDoc.exists() ? userDoc.data() : null;
-  const isAdmin = Boolean(userData?.isAdmin === true || userData?.role === 'admin');
+  const isAdmin = Boolean(userData?.isAdmin === true || userData?.role === 'admin' || userData?.admin === true);
 
   if (!isAdmin) {
     await signOut(auth);
