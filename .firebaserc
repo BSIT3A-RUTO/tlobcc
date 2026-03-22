@@ -1,0 +1,8 @@
+{
+  "projects": {
+    "default": "your-firebase-project-id",
+    "tlobcc": "lunar-pact-391315"
+  },
+  "targets": {},
+  "etags": {}
+}

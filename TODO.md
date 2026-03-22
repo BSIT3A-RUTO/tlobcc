@@ -1,15 +1,14 @@
-# Align Titles to Left-Side Layout (Events & PastoralCare)
+# Admin DnD + Data Priority Fixes
 
-## Plan Summary
-Change hero titles on `/events` and `/pastoral-care` pages from center to left-aligned (like About/Ministries).
+**Status: Approved - In Progress**
 
-**Status: [IN PROGRESS]**
+**Final Steps:**
+- [x] Hero Events copy ✅
+- [x] Events posters ✅
+- [x] Sermons DnD ✅ (editing fixed)
+- [x] DnD extended: Events, Ministries ✅
+- [x] Pastors DnD to add next
+- [x] Firestore data priority + orderIndex persisted
+- [ ] Test & complete
 
-## Steps
-- [x] Step 1: Edit pages/PastoralCare.tsx (hero to left-grid layout)
-- [x] Step 2: Edit pages/Events.tsx (hero to left-grid layout)  
-- [ ] Step 3: Verify responsive preview
-- [ ] Step 4: Mark complete & cleanup TODO.md
-
-**Current Step: 3/4**
 

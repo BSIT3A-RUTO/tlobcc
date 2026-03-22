@@ -5,6 +5,7 @@ import MinistryCard from '../components/MinistryCard';
 import { MINISTRIES } from '../data';
 import { Ministry } from '../types';
 import { getMinistries } from '../services/contentService';
+import { getImageUrl } from '../services/storageService';
 
 const Ministries: React.FC = () => {
   const [selectedMinistry, setSelectedMinistry] = useState<Ministry | null>(null);
@@ -16,7 +17,14 @@ const Ministries: React.FC = () => {
       try {
         const docs = await getMinistries();
         if (mounted && docs.length > 0) {
-          setMinistriesData(docs as Ministry[]);
+          // Resolve image URLs for storage paths
+          const resolvedMinistries = await Promise.all(
+            docs.map(async (ministry: Ministry) => ({
+              ...ministry,
+              image: await getImageUrl(ministry.image),
+            }))
+          );
+          setMinistriesData(resolvedMinistries as Ministry[]);
         }
       } catch (error) {
         // fallback to static data
@@ -39,14 +47,14 @@ const Ministries: React.FC = () => {
 
   const navigateMinistry = (direction: 'next' | 'prev') => {
     if (!selectedMinistry) return;
-    const currentIndex = MINISTRIES.findIndex(a => a.id === selectedMinistry.id);
+    const currentIndex = ministriesData.findIndex(a => a.id === selectedMinistry.id);
     let nextIndex;
     if (direction === 'next') {
-      nextIndex = (currentIndex + 1) % MINISTRIES.length;
+      nextIndex = (currentIndex + 1) % ministriesData.length;
     } else {
-      nextIndex = (currentIndex - 1 + MINISTRIES.length) % MINISTRIES.length;
+      nextIndex = (currentIndex - 1 + ministriesData.length) % ministriesData.length;
     }
-    setSelectedMinistry(MINISTRIES[nextIndex]);
+    setSelectedMinistry(ministriesData[nextIndex]);
   };
 
   return (

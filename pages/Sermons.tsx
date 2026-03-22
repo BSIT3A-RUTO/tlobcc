@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import { PlayCircle, User } from 'lucide-react';
 import { SERMONS } from '../data';
 import { getSermons, SermonRecord } from '../services/contentService';
+import { getImageUrl } from '../services/storageService';
 
 const Sermons: React.FC = () => {
   const [sermons, setSermons] = useState<SermonRecord[]>([]);
@@ -12,8 +13,23 @@ const Sermons: React.FC = () => {
     const load = async () => {
       try {
         const data = await getSermons();
-        if (mounted && data.length > 0) setSermons(data);
-      } catch {
+        if (mounted) {
+          if (data.length > 0) {
+            // Resolve image URLs for storage paths
+            const resolvedSermons = await Promise.all(
+              data.map(async (sermon) => ({
+                ...sermon,
+                image: await getImageUrl(sermon.image),
+              }))
+            );
+            setSermons(resolvedSermons);
+          } else {
+            // Only use fallback if Firestore returns empty
+            setSermons(SERMONS.map((s) => ({ ...s, id: String(s.id) })));
+          }
+        }
+      } catch (error) {
+        // On error, try fallback
         if (mounted) setSermons(SERMONS.map((s) => ({ ...s, id: String(s.id) })));
       }
     };

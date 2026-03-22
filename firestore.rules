@@ -102,7 +102,7 @@ service cloud.firestore {
 
     function isValidAdminNotification() {
       return hasRequiredFields(['type', 'isRead', 'label']) &&
-             (request.resource.data.type in ['connect', 'prayer']) &&
+             (request.resource.data.type in ['connect', 'prayer', 'pastoral']) &&
              request.resource.data.isRead is bool &&
              validStringLength('label', 1, 200) &&
              ( !('email' in request.resource.data) || isValidOptionalEmail('email') );
@@ -142,7 +142,8 @@ service cloud.firestore {
 
     match /siteMetadata/{docId} {
       allow read: if true;
-      allow write: if isAuthenticated();
+      // Only admins should be allowed to update site metadata from the admin panel.
+      allow write: if isAdmin();
     }
 
     match /sermons/{docId} {
@@ -168,6 +169,34 @@ service cloud.firestore {
     match /pastors/{docId} {
       allow read: if true;
       allow create, update, delete: if isAdmin();
+    }
+
+    match /pastoralRequests/{requestId} {
+      allow create: if request.resource.data.keys().hasAll(['name', 'email', 'serviceType', 'datePreference', 'timePreference']) &&
+                     request.resource.data.name is string && request.resource.data.name.size() > 0 && request.resource.data.name.size() <= 100 &&
+                     request.resource.data.email is string && request.resource.data.email.size() > 0 && request.resource.data.email.size() <= 100 &&
+                     request.resource.data.serviceType in ['child-dedication', 'house-dedication', 'business-dedication', 'funeral-service'] &&
+                     request.resource.data.datePreference is string && request.resource.data.datePreference.size() > 0 &&
+                     request.resource.data.timePreference is string && request.resource.data.timePreference.size() > 0;
+      allow read, update, delete: if isAdmin();
+    }
+
+    match /analytics/{docId} {
+      // Allow anyone to write page view events
+      allow create: if isAuthenticated();
+      // Allow anyone to read analytics (not sensitive data)
+      allow read: if true;
+      allow update, delete: if isAdmin();
+    }
+
+    match /adminSettings/{docId} {
+      // Admins can read/write their own settings
+      allow read, write: if isAdmin();
+    }
+
+    match /config/{docId} {
+      allow read: if true;
+      allow write: if isAdmin();
     }
 
     // Default deny
